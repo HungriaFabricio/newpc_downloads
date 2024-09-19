@@ -6,8 +6,6 @@ script_diretorio=$(dirname "$0")
 pc_serialnumber=$(wmic bios get serialnumber | grep -v "SerialNumber" | xargs)
 echo "O número de série dessa máquina é $pc_serialnumber"
 echo "Esse script está sendo rodado na pasta: $script_diretorio"
-read
-
 
 adobe_reader () {
     echo "esse sistema operacional é qual? 10/11, responder apenas com numero"
@@ -80,11 +78,53 @@ dell_install() {
 }
 
 change_hostname() {
-    echo "Efetuando a troca do hostname"
-    powershell.exe Rename-Computer -NewName "$pc_serianumber" -Force
-}
+    echo "Deseja efetuar a troca de hostname? (Y/N)"
+    read hostnamechange
 
-windows_updater() {
+    if [ $hostnamechange = "Y" ] || [ $hostnamechange = "y" ] || [ $hostnamechange = "yes" ]; then
+        echo "Efetuando a troca do hostname"
+        powershell.exe Rename-Computer -NewName "$pc_serianumber" -Force
+        echo "Deseja reiniciar seu computador agora? (Y/N)"
+        read restartpc
+        if [ $restartpc = "Y" ] || [ $restartpc = "y" ] || [ $restartpc = "yes" ]; then
+            shutdown -r 1
+            echo "Reinicinado em um minuto"
+        elif [ $restartpc = "N" ] || [ $restartpc = "n" ] || [ $restartpc = "no" ]; then
+            echo "Reinicialização pulada"
+        else 
+            echo "Valor inválido"
+        fi
+    elif [ $hostnamechange = "N" ] || [ $hostnamechange = "n" ] || [ $hostnamechange = "no" ]; then
+        echo "Pulando mudança do hostname"
+    else
+        echo "Valor inválido"
+    fi
     
 }
+
+user_choice() {
+    local app_name=$1
+    local install_function=$2
+    echo "Deseja instalar $app_name? (Y/N)"
+    read resposta
+
+    if [ $resposta = "Y" ] || [ $resposta = "y" ] || [ $resposta = "yes" ]; then
+        $install_function
+    elif [ $resposta = "N" ] || [ $resposta = "n" ] || [ $resposta = "no" ]; then
+        printf "Pulando a instalação..."
+    else 
+        printf "Valor inválido"
+    fi
+}
+
+user_choice "Adobe Reader" adobe_reader
+user_choice "Office 365" office_365
+user_choice "Hamachi" hamachi_install
+user_choice "Chrome" chrome_install
+user_choice "Firefox" firefox_install
+user_choice "Anydesk" anydesk_install
+user_choice "Dell Support" dell_install
+change_hostname 
+
 read
+
